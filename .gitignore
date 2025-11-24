@@ -1,4 +1,26 @@
+.env
+env/
+# Python cache
 __pycache__/
+*.py[cod]
+# Distribute / packaging
+build/
+dist/
+*.egg-info/
+# virtualenv
+venv/
+.venv/
+# tooling
+.pytest_cache/
+.mypy_cache/
+# Editor directories
+.vscode/
+.idea/
+# OS files
+.DS_Store
+# dotenv
+.env.local
+.env.*__pycache__/
 *.py[cod]
 *$py.class
 

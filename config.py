@@ -1,10 +1,7 @@
-from pydantic_settings import BaseSettings
+import os
 from dotenv import load_dotenv
+
 load_dotenv()
 
-class Settings(BaseSettings):
-    reddit_client_id: str
-    reddit_client_secret: str
-    reddit_user_agent: str
-
-settings = Settings()
+SERPAPI_KEY = os.getenv("SERPAPI_KEY")
+PYTRENDS_TIMEFRAME = os.getenv("PYTRENDS_TIMEFRAME", "now 7-d")
