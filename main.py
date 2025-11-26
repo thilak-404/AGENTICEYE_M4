@@ -5,6 +5,7 @@ from datetime import datetime
 from pipelines.youtube import fetch_youtube_comments
 from utils.nlp_utils import analyze_comments
 from m3_ideas import generate_m3
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="ViralEdge M3 Engine",
@@ -12,6 +13,14 @@ app = FastAPI(
     version="3.0"
 )
 
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],           # Allows localhost:5000
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 @app.get("/")
 async def root():
     return {
