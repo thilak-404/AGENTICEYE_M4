@@ -39,8 +39,8 @@ export async function GET(req: Request) {
 
     if (type === 'history') {
         let takeLimit = 1; // Default Free
-        if (dbUser.tier === 'Diamond') takeLimit = 50;
-        if (dbUser.tier === 'Solitaire') takeLimit = 1000;
+        if (dbUser.tier === 'Diamond') takeLimit = 10;
+        if (dbUser.tier === 'Solitaire') takeLimit = 10000; // Effectively unlimited
 
         const history = await prisma.analysis.findMany({
             where: { userId: dbUser.id },

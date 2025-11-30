@@ -44,11 +44,11 @@ export async function POST(req: Request) {
 
                 if (amount === 2000) { // Diamond ($20)
                     creditsToAdd = 100;
-                    videoCreditsToAdd = 3;
+                    videoCreditsToAdd = 3; // 3 Free Video Generations
                     newTier = "Diamond";
                 } else if (amount === 3000) { // Solitaire ($30)
                     creditsToAdd = 200;
-                    videoCreditsToAdd = 5;
+                    videoCreditsToAdd = 5; // 5 Free Video Generations
                     newTier = "Solitaire";
                 }
 
