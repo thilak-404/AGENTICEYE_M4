@@ -34,68 +34,45 @@ async def m3_analyze(
     platform: str = Query("youtube", description="Platform (youtube/tiktok)"),
     limit: int = Query(100, description="Comment limit")
 ):
-    if platform == "tiktok":
-        # Mock TikTok Analysis for now as we don't have a TikTok scraper
-        m2 = {
-            "topics": [{"topic": "Trending Challenge"}, {"topic": "Viral Sound"}, {"topic": "Dance"}],
-            "questions": [{"text": "What is this song?"}, {"text": "Tutorial please!"}],
-            "sentiment": {"positive": 85},
-            "engagement": {"comments_count": 1200}
-        }
-    else:
-        # Optimized: Use limit from query (default 100 for speed, 500 for deep)
-        comments_data = await asyncio.to_thread(fetch_youtube_comments, url, limit=limit)
-        if "error" in comments_data:
-            raise HTTPException(500, comments_data["error"])
-        m2 = analyze_comments(comments_data["comments"], url)
-
     try:
+        if platform == "tiktok":
+            # Mock TikTok Analysis for now as we don't have a TikTok scraper
+            m2 = {
+                "topics": [{"topic": "Trending Challenge"}, {"topic": "Viral Sound"}, {"topic": "Dance"}],
+                "questions": [{"text": "What is this song?"}, {"text": "Tutorial please!"}],
+                "sentiment": {"positive": 85},
+                "engagement": {"comments_count": 1200}
+            }
+        else:
+            # Optimized: Use limit from query (default 100 for speed, 500 for deep)
+            print(f"Fetching comments for {url}...")
+            comments_data = await asyncio.to_thread(fetch_youtube_comments, url, max_comments=limit)
+            if "error" in comments_data:
+                print(f"Comment fetch error: {comments_data['error']}")
+                raise HTTPException(500, comments_data["error"])
+            print("Comments fetched. Analyzing...")
+            m2 = analyze_comments(comments_data["comments"])
+
+        print("Generating M3...")
         m3 = generate_m3(m2, tier)  # ← 100% DeepSeek
+        
+        return {
+            "engine": "ViralEdge-M3",
+            "model_used": "DeepSeek-V3",
+            "video_url": url,
+            "generated_at": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "m2_analysis": {
+                "topics": m2["topics"],
+                "questions": m2["questions"][:10],
+                "sentiment": m2["sentiment"],
+                "engagement": m2["engagement"]
+            },
+            "m3_generation": m3
+        }
     except Exception as e:
         import traceback
-        with open("debug_error.log", "w") as f:
-            f.write(str(e) + "\n" + traceback.format_exc())
-        print(f"DeepSeek Error: {e}")
-        # Fallback for demo if API fails/rate-limits
-        m3 = {
-            "viral_prediction_engine": {
-                "score": 98,
-                "category": "High",
-                "reasons": ["High question intent", "Strong topic relevance", "Positive audience vibe"]
-            },
-            "content_category_classifier": {
-                "best_format": "YouTube Long-form",
-                "alternative_formats": ["Instagram Reel", "X Thread"],
-                "reason": "Deep engagement detected"
-            },
-            "viral_pattern_detection": {
-                "detected_patterns": ["Pattern A", "Pattern B"],
-                "confidence": 0.95
-            },
-            "ai_recommendations": {
-                "next_best_content": ["Idea 1", "Idea 2", "Idea 3"]
-            },
-            "seo_keyword_generator": {
-                "primary_keywords": ["Key1", "Key2"],
-                "secondary_keywords": ["Key3", "Key4"],
-                "search_volume": {"Key1": "10K"}
-            },
-            "generated_by": "Fallback (Demo Mode)"
-        }
-
-    return {
-        "engine": "ViralEdge-M3",
-        "model_used": "DeepSeek-V3",
-        "video_url": url,
-        "generated_at": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "m2_analysis": {
-            "topics": m2["topics"],
-            "questions": m2["questions"][:10],
-            "sentiment": m2["sentiment"],
-            "engagement": m2["engagement"]
-        },
-        "m3_generation": m3
-    }
+        traceback.print_exc()
+        return {"error": str(e), "traceback": traceback.format_exc()}
 
 @app.post("/m3/generate-script")
 async def generate_script_endpoint(

@@ -56,8 +56,17 @@ def analyze_comments(comments):
     # Sort questions by length (heuristic for quality) and take top 10
     questions.sort(key=lambda x: len(x['text']), reverse=True)
     
+    # 4. Engagement Metrics
+    total_likes = sum(c.get('likes', 0) for c in comments)
+    engagement = {
+        "comments_count": len(comments),
+        "total_likes": total_likes,
+        "avg_likes": round(total_likes / len(comments)) if comments else 0
+    }
+
     return {
         "sentiment": sentiment,
         "topics": topics,
-        "questions": questions[:10]
+        "questions": questions[:10],
+        "engagement": engagement
     }

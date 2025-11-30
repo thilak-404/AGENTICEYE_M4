@@ -1,6 +1,19 @@
 from youtube_comment_downloader import YoutubeCommentDownloader
 import re
 
+def parse_votes(votes_str):
+    if not votes_str:
+        return 0
+    votes_str = str(votes_str).upper().replace(',', '')
+    if 'K' in votes_str:
+        return int(float(votes_str.replace('K', '')) * 1000)
+    if 'M' in votes_str:
+        return int(float(votes_str.replace('M', '')) * 1000000)
+    try:
+        return int(re.sub(r'\D', '', votes_str))
+    except:
+        return 0
+
 def fetch_youtube_comments(video_url, max_comments=100):
     downloader = YoutubeCommentDownloader()
     comments = []
@@ -24,11 +37,11 @@ def fetch_youtube_comments(video_url, max_comments=100):
             comments.append({
                 "text": comment['text'],
                 "author": comment['author'],
-                "likes": comment.get('votes', 0),
+                "likes": parse_votes(comment.get('votes', 0)),
                 "time": comment.get('time_parsed', 0) # Relative time
             })
             
-        return comments
+        return {"comments": comments}
     except Exception as e:
         print(f"Error fetching comments: {e}")
-        return []
+        return {"error": str(e)}
