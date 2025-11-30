@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ArrowRight, Play, Zap, BarChart3, Lock } from 'lucide-react';
 import HeroSection from '@/components/landing/HeroSection';
+import { LoginLink, RegisterLink } from "@kinde-oss/kinde-auth-nextjs/components";
 
 export default function LandingPage() {
   return (
@@ -9,12 +10,12 @@ export default function LandingPage() {
       <nav className="w-full p-6 flex justify-between items-center glass-card border-b-0 rounded-none">
         <div className="text-2xl font-bold text-gradient tracking-tighter">Agentic Eye</div>
         <div className="flex gap-4">
-          <Link href="/api/auth/login" className="px-6 py-2 rounded-full border border-cyan-400 text-cyan-400 hover:bg-cyan-400/10 transition-all">
+          <LoginLink className="px-6 py-2 rounded-full border border-cyan-400 text-cyan-400 hover:bg-cyan-400/10 transition-all">
             Login
-          </Link>
-          <Link href="/api/auth/register" className="px-6 py-2 rounded-full bg-gradient-primary text-white font-bold hover:scale-105 transition-all shadow-[0_0_20px_rgba(0,242,255,0.4)]">
+          </LoginLink>
+          <RegisterLink className="px-6 py-2 rounded-full bg-gradient-primary text-white font-bold hover:scale-105 transition-all shadow-[0_0_20px_rgba(0,242,255,0.4)]">
             Start Free
-          </Link>
+          </RegisterLink>
         </div>
       </nav>
 
@@ -60,9 +61,9 @@ export default function LandingPage() {
                 <li className="flex items-center gap-3 text-gray-500 line-through"><span className="text-red-500 font-bold mr-1">✕</span> NO Video Generations</li>
               </ul>
 
-              <Link href="/api/auth/register" className="block w-full py-3 rounded-xl border border-white/20 text-center font-bold hover:bg-white/10 transition-all">
+              <RegisterLink className="block w-full py-3 rounded-xl border border-white/20 text-center font-bold hover:bg-white/10 transition-all">
                 Start Free
-              </Link>
+              </RegisterLink>
             </div>
 
             {/* Diamond Plan (Highlighted) */}
@@ -84,9 +85,9 @@ export default function LandingPage() {
                 <li className="flex items-center gap-3 text-gray-500 line-through"><span className="text-red-500 font-bold mr-1">✕</span> No AI Content Ideas Reports</li>
               </ul>
 
-              <Link href="/api/auth/register" className="block w-full py-3 rounded-xl bg-gradient-primary text-center font-bold hover:shadow-[0_0_20px_rgba(0,242,255,0.5)] transition-all">
+              <RegisterLink className="block w-full py-3 rounded-xl bg-gradient-primary text-center font-bold hover:shadow-[0_0_20px_rgba(0,242,255,0.5)] transition-all">
                 Get Diamond
-              </Link>
+              </RegisterLink>
             </div>
 
             {/* Solitaire Plan */}
@@ -105,9 +106,9 @@ export default function LandingPage() {
                 <li className="flex items-center gap-3 text-gray-300">✓ Priority support</li>
               </ul>
 
-              <Link href="/api/auth/register" className="block w-full py-3 rounded-xl border border-white/20 text-center font-bold hover:bg-white/10 transition-all">
+              <RegisterLink className="block w-full py-3 rounded-xl border border-white/20 text-center font-bold hover:bg-white/10 transition-all">
                 Go Solitaire
-              </Link>
+              </RegisterLink>
             </div>
           </div>
         </div>
