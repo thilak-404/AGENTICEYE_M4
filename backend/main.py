@@ -43,36 +43,59 @@ async def m3_analyze(
                 "sentiment": {"positive": 85},
                 "engagement": {"comments_count": 1200}
             }
-        else:
-            # Optimized: Use limit from query (default 100 for speed, 500 for deep)
-            print(f"Fetching comments for {url}...")
-            comments_data = await asyncio.to_thread(fetch_youtube_comments, url, max_comments=limit)
-            if "error" in comments_data:
-                print(f"Comment fetch error: {comments_data['error']}")
-                raise HTTPException(500, comments_data["error"])
-            print("Comments fetched. Analyzing...")
-            m2 = analyze_comments(comments_data["comments"])
-
-        print("Generating M3...")
-        m3 = generate_m3(m2, tier)  # ← 100% DeepSeek
+        # 1. Fetch Comments
+        # The original code used asyncio.to_thread for fetch_youtube_comments,
+        # but the new snippet calls it directly. Assuming fetch_youtube_comments
+        # is now synchronous or handles its own async.
+        # If fetch_youtube_comments is still synchronous and blocking,
+        # it should be wrapped in asyncio.to_thread.
+        comments_data = await asyncio.to_thread(fetch_youtube_comments, url, max_comments=limit)
+        if "error" in comments_data:
+            return JSONResponse(content={"error": f"YouTube Error: {comments_data['error']}"}, status_code=400)
         
-        return {
-            "engine": "ViralEdge-M3",
-            "model_used": "DeepSeek-V3",
+        comments = comments_data["comments"]
+        if not comments:
+             return JSONResponse(content={"error": "No comments found or video is private."}, status_code=400)
+
+        # 2. Analyze Sentiment & Topics (NLP)
+        # We pass the raw comments list to the NLP analyzer
+        nlp_results = analyze_comments(comments)
+        
+        # 3. Generate Viral Ideas & Script (DeepSeek AI)
+        # We construct a rich prompt context
+        ai_context = {
             "video_url": url,
-            "generated_at": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "m2_analysis": {
-                "topics": m2["topics"],
-                "questions": m2["questions"][:10],
-                "sentiment": m2["sentiment"],
-                "engagement": m2["engagement"]
-            },
-            "m3_generation": m3
+            "platform": platform,
+            "tier": tier,
+            "sentiment_summary": nlp_results.get("sentiment", {}),
+            "top_topics": nlp_results.get("topics", [])[:5],
+            "comments_sample": [c["text"] for c in comments[:20]] # Feed top 20 comments to AI
         }
+        
+        m3_results = await generate_m3(ai_context)
+        
+        # 4. Construct Final JSON Response
+        response_data = {
+            "viral_score": m3_results.get("viral_prediction_engine", {}).get("score", 85), # Fallback to 85 if AI fails
+            "sentiment": nlp_results.get("sentiment", {"positive": 0, "negative": 0, "neutral": 0}),
+            "topics": nlp_results.get("topics", []),
+            "ideas": m3_results.get("content_ideas_agent", {}).get("ideas", []),
+            "full_script": m3_results.get("script_generation_agent", {}).get("script", "Script generation unavailable."),
+            "engagement_metrics": nlp_results.get("engagement_metrics", {
+                "comments_count": len(comments),
+                "total_likes": sum(c.get('votes', 0) for c in comments),
+                "avg_likes": 0
+            }),
+            "m2_analysis": nlp_results, # Keep legacy structure for backward compatibility if needed
+            "m3_generation": m3_results
+        }
+
+        return response_data
+
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return {"error": str(e), "traceback": traceback.format_exc()}
+        return JSONResponse(content={"error": str(e), "trace": traceback.format_exc()}, status_code=500)
 
 @app.post("/m3/generate-script")
 async def generate_script_endpoint(

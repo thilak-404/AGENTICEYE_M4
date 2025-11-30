@@ -1,0 +1,137 @@
+.
+├── backend
+│   ├── app
+│   │   ├── analysis.py
+│   │   ├── config.py
+│   │   ├── __init__.py
+│   │   ├── m3_ideas.py
+│   │   ├── ml_nlp.py
+│   │   ├── models
+│   │   │   └── response.py
+│   │   ├── pipelines
+│   │   │   ├── google_trends.py
+│   │   │   ├── __init__.py
+│   │   │   ├── nlp.py
+│   │   │   ├── reddit_post.py
+│   │   │   ├── reddit.py
+│   │   │   ├── tiktok.py
+│   │   │   ├── trending.py
+│   │   │   └── youtube.py
+│   │   └── utils
+│   │       ├── headers.py
+│   │       ├── __init__.py
+│   │       ├── nlp_utils.py
+│   │       ├── sentiment_utils.py
+│   │       └── text_utils.py
+│   ├── Dockerfile
+│   ├── main.py
+│   └── requirements.txt
+├── debug_error.log
+├── DEPLOY.md
+├── docker-compose.yml
+├── frontend
+│   ├── api
+│   ├── check_db_status.ts
+│   ├── check_env.js
+│   ├── check_plans.ts
+│   ├── check_prisma.ts
+│   ├── check_requests.ts
+│   ├── check_users.js
+│   ├── check_users.ts
+│   ├── cleanup_requests.ts
+│   ├── dev.db
+│   ├── Dockerfile
+│   ├── eslint.config.mjs
+│   ├── next.config.ts
+│   ├── next-env.d.ts
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── postcss.config.mjs
+│   ├── prisma
+│   │   ├── dev.db
+│   │   ├── migrations
+│   │   │   ├── 20251129132916_init
+│   │   │   │   └── migration.sql
+│   │   │   ├── 20251129153058_add_video_generations
+│   │   │   │   └── migration.sql
+│   │   │   ├── 20251129180907_add_video_requests
+│   │   │   │   └── migration.sql
+│   │   │   └── migration_lock.toml
+│   │   └── schema.prisma
+│   ├── public
+│   │   ├── file.svg
+│   │   ├── globe.svg
+│   │   ├── next.svg
+│   │   ├── vercel.svg
+│   │   └── window.svg
+│   ├── README.md
+│   ├── src
+│   │   ├── app
+│   │   │   ├── admin
+│   │   │   │   └── dashboard
+│   │   │   │       └── page.tsx
+│   │   │   ├── api
+│   │   │   │   ├── admin
+│   │   │   │   │   ├── fix-credits
+│   │   │   │   │   ├── route
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── auth
+│   │   │   │   │   └── [kindeAuth]
+│   │   │   │   │       └── route.ts
+│   │   │   │   ├── stripe
+│   │   │   │   │   ├── route
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── user
+│   │   │   │   │   ├── route
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── video-request
+│   │   │   │   │   ├── route
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── webhooks
+│   │   │   │       └── stripe
+│   │   │   │           └── route.ts
+│   │   │   ├── AuthProvider.tsx
+│   │   │   ├── dashboard
+│   │   │   │   ├── loading.tsx
+│   │   │   │   └── page.tsx
+│   │   │   ├── favicon.ico
+│   │   │   ├── globals.css
+│   │   │   ├── layout.tsx
+│   │   │   ├── page.tsx
+│   │   │   └── pricing
+│   │   │       └── page.tsx
+│   │   ├── components
+│   │   │   ├── dashboard
+│   │   │   │   ├── AIContentIdeas.tsx
+│   │   │   │   ├── AudienceInsights.tsx
+│   │   │   │   ├── CreditGauge.tsx
+│   │   │   │   ├── CreditHistoryTab.tsx
+│   │   │   │   ├── DashboardHome.tsx
+│   │   │   │   ├── EngagementHeatmap.tsx
+│   │   │   │   ├── HistoryTab.tsx
+│   │   │   │   ├── SettingsTab.tsx
+│   │   │   │   ├── SidebarItem.tsx
+│   │   │   │   ├── StoryLoader.tsx
+│   │   │   │   ├── VideoGenerationPromo.tsx
+│   │   │   │   ├── VideoRequestForm.tsx
+│   │   │   │   ├── ViralIntelligence.tsx
+│   │   │   │   └── ViralScoreGauge.tsx
+│   │   │   └── landing
+│   │   │       └── HeroSection.tsx
+│   │   ├── lib
+│   │   │   └── prisma.ts
+│   │   └── middleware.ts
+│   └── tsconfig.json
+├── full_structure.txt
+├── package-lock.json
+├── project_structure.txt
+├── README.md
+├── routes
+│   └── m3_routes.py
+├── streamlit_app.py
+├── tests
+│   └── test_health.py
+├── viraledge-code-only.zip
+└── viraledge-python-only.zip
+
+40 directories, 95 files
