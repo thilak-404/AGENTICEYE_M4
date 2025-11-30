@@ -21,9 +21,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-@app.get("/health")
-def health_check():
-    return {"status": "ok", "service": "AgenticEye Backend"}
+
 
 @app.get("/")
 def read_root():
@@ -160,4 +158,9 @@ async def generate_script_endpoint(
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "time": datetime.utcnow().isoformat() + "Z"}
+    return {
+        "status": "ok",
+        "service": "AgenticEye Backend",
+        "version": "3.0",
+        "time": datetime.utcnow().isoformat() + "Z"
+    }
