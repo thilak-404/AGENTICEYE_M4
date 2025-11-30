@@ -21,14 +21,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+@app.get("/health")
+def health_check():
+    return {"status": "ok", "service": "AgenticEye Backend"}
+
 @app.get("/")
-async def root():
-    return {
-        "engine": "ViralEdge-M3",
-        "status": "LIVE",
-        "model": "DeepSeek-V3",
-        "endpoint": "/m3/analyze?url=https://youtube.com/watch?v=..."
-    }
+def read_root():
+    return {"message": "Welcome to the Agentic Eye API"}
 
 @app.get("/m3/analyze")
 async def m3_analyze(
