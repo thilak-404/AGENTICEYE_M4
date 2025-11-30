@@ -1,11 +1,9 @@
 fastapi
-uvicorn[standard]
-pydantic==2.8
+uvicorn
+requests
 python-dotenv
 youtube-comment-downloader
-httpx
-requests
-vaderSentiment
-beautifulsoup4
-lxml
-regex
+textblob
+scikit-learn
+nltk
+numpy
