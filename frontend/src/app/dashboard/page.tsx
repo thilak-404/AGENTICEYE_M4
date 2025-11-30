@@ -270,10 +270,23 @@ export default function Dashboard() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user, creditsLoaded, credits, searchParams, loading, result]);
 
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
     return (
-        <div className="flex h-screen bg-white text-gray-900 font-sans overflow-hidden">
+        <div className="flex h-screen bg-white text-gray-900 font-sans overflow-hidden relative">
+            {/* Mobile Sidebar Toggle */}
+            <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="lg:hidden absolute top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-md"
+            >
+                <Video className="w-6 h-6 text-purple-600" />
+            </button>
+
             {/* Sidebar */}
-            <aside className="w-64 bg-white border-r border-gray-200 flex flex-col justify-between p-4 shadow-sm z-10">
+            <aside className={`
+                fixed lg:static inset-y-0 left-0 w-64 bg-white border-r border-gray-200 flex flex-col justify-between p-4 shadow-sm z-40 transform transition-transform duration-300 ease-in-out
+                ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+            `}>
                 <div>
                     <div className="flex items-center gap-2 mb-8 px-2">
                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center text-white font-bold">
