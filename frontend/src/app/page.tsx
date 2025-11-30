@@ -6,6 +6,13 @@ import { LoginLink, RegisterLink } from "@kinde-oss/kinde-auth-nextjs/components
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: "Agentic Eye - Viral Video Intelligence",
+  description: "Predict viral potential before you post. AI-powered analysis for YouTube and TikTok.",
+};
+
 export default function LandingPage() {
   const [url, setUrl] = useState('');
   const router = useRouter();
@@ -65,7 +72,7 @@ export default function LandingPage() {
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="Paste YouTube or TikTok URL..."
-                className="flex-1 bg-transparent border-none focus:ring-0 text-white px-4 py-3 outline-none placeholder-gray-500"
+                className="flex-1 bg-white/10 border border-white/20 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-white px-4 py-3 rounded-xl outline-none placeholder-gray-400 transition-all"
               />
               <button type="submit" className="bg-white text-black px-6 py-3 rounded-xl font-bold hover:bg-gray-200 transition-colors">
                 Analyze
