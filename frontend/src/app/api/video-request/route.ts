@@ -63,9 +63,7 @@ export async function POST(req: Request) {
                 userId: dbUser.id,
                 ideaTitle: title,
                 notes,
-                style,
-                duration,
-                tone,
+                preferences: JSON.stringify({ style, duration, tone }),
                 status: 'PENDING',
             }
         }),
