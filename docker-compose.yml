@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - PYTHON_BACKEND_URL=http://backend:8000
+      # Add other env vars here or use .env file
+    depends_on:
+      - backend
+    networks:
+      - viraledge-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+    networks:
+      - viraledge-network
+
+networks:
+  viraledge-network:
+    driver: bridge
