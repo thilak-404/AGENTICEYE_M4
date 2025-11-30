@@ -37,6 +37,19 @@ export async function GET(req: Request) {
         return NextResponse.json({ transactions: dbUser.transactions || [] });
     }
 
+    if (type === 'history') {
+        let takeLimit = 1; // Default Free
+        if (dbUser.tier === 'Diamond') takeLimit = 50;
+        if (dbUser.tier === 'Solitaire') takeLimit = 1000;
+
+        const history = await prisma.analysis.findMany({
+            where: { userId: dbUser.id },
+            orderBy: { createdAt: 'desc' },
+            take: takeLimit,
+        });
+        return NextResponse.json({ history });
+    }
+
     // Default: Return credits
     return NextResponse.json({
         credits: dbUser.credits,
@@ -97,6 +110,26 @@ export async function POST(req: Request) {
         ]);
 
         return NextResponse.json({ success: true, remaining: dbUser.credits - deductAmount });
+    }
+
+    if (action === 'save_history') {
+        const { videoUrl, result } = body as any;
+
+        const dbUser = await prisma.user.findUnique({
+            where: { kindeId: user.id },
+        });
+
+        if (!dbUser) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+        await prisma.analysis.create({
+            data: {
+                userId: dbUser.id,
+                videoUrl,
+                result: JSON.stringify(result),
+            },
+        });
+
+        return NextResponse.json({ success: true });
     }
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });

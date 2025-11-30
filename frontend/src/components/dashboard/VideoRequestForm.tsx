@@ -54,15 +54,17 @@ export default function VideoRequestForm({
         }
         setGeneratingScript(true);
         try {
-            const res = await fetch('/api/generate-script', {
+            // Construct query parameters for the Python endpoint
+            const params = new URLSearchParams({
+                title: requestTitle,
+                duration: requestDuration,
+                tone: requestTone,
+                notes: requestNotes
+            });
+
+            const res = await fetch(`/api/py/m3/generate-script?${params.toString()}`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    title: requestTitle,
-                    duration: requestDuration,
-                    tone: requestTone,
-                    notes: requestNotes
-                })
+                headers: { 'Content-Type': 'application/json' }
             });
 
             if (!res.ok) throw new Error('Generation failed');

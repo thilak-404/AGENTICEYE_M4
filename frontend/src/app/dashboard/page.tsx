@@ -94,7 +94,7 @@ export default function Dashboard() {
 
     const fetchHistory = async () => {
         try {
-            const res = await fetch('/api/history');
+            const res = await fetch('/api/user?type=history');
             const data = await res.json();
             if (data.history) setHistory(data.history);
         } catch (error) {
@@ -188,10 +188,10 @@ export default function Dashboard() {
             fetchTransactions();
 
             // 3. Save to History
-            await fetch('/api/history', {
+            await fetch('/api/user', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ videoUrl: url, result: data })
+                body: JSON.stringify({ action: 'save_history', videoUrl: url, result: data })
             });
             fetchHistory();
         } catch (error) {
