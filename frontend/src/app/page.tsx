@@ -6,12 +6,7 @@ import { LoginLink, RegisterLink } from "@kinde-oss/kinde-auth-nextjs/components
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { Metadata } from 'next';
 
-export const metadata: Metadata = {
-  title: "Agentic Eye - Viral Video Intelligence",
-  description: "Predict viral potential before you post. AI-powered analysis for YouTube and TikTok.",
-};
 
 export default function LandingPage() {
   const [url, setUrl] = useState('');
