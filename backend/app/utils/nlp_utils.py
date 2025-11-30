@@ -1,101 +1,63 @@
-# utils/nlp_utils.py
-from typing import List, Dict, Any
-import re
+from textblob import TextBlob
+from sklearn.feature_extraction.text import TfidfVectorizer
 from collections import Counter
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+import re
 
-analyzer = SentimentIntensityAnalyzer()
-
-def clean(text: str) -> str:
-    if not text:
-        return ""
-    text = re.sub(r"http\S+|@\w+|#\w+", "", text)
-    text = re.sub(r"\s+", " ", text).strip()
+def clean_text(text):
+    text = re.sub(r'http\S+', '', text) # Remove URLs
+    text = re.sub(r'[^\w\s]', '', text) # Remove punctuation
     return text.lower()
 
-def extract_questions(comments: List[Dict]) -> List[Dict]:
-    patterns = ["how", "what", "why", "when", "where", "who", "which", "?", "can you", "should", "could"]
-    seen = set()
-    result = []
-    for c in comments:
-        txt = clean(c.get("text", ""))
-        if any(p in txt for p in patterns) and len(txt) > 20:
-            key = txt[:70]
-            if key not in seen:
-                seen.add(key)
-                result.append({"text": c["text"], "author": c.get("author", "unknown")})
-    return result[:12]
-
-def extract_topics(comments: List[Dict]) -> List[Dict]:
-    texts = [clean(c.get("text", "")) for c in comments if len(clean(c.get("text", ""))) > 30]
-
-    phrases = []
-    for text in texts:
-        words = text.split()
-        phrases.extend([" ".join(words[i:i+2]) for i in range(len(words)-1)])
-        phrases.extend([" ".join(words[i:i+3]) for i in range(len(words)-2)])
-
-    banned = {
-        "to be", "is a", "can be", "going to", "need to", "at the", "this is", "that is", "what do",
-        "how to", "thank you", "great video", "good video", "love this", "you are", "i am", "i think"
-    }
-
-    counter = Counter(p for p in phrases if p not in banned and len(p.split()) >= 2)
-    total = sum(counter.values()) or 1
-
-    topics = []
-    for phrase, count in counter.most_common(15):
-        topics.append({
-            "topic": phrase.title(),
-            "score": round(count / total * 100, 1)
-        })
-
-    # Fallback to strong single words
-    if len(topics) < 5:
-        words = re.findall(r"[a-z]{5,}", " ".join(texts))
-        word_count = Counter(w for w in words if w not in {"video", "youtube", "people", "really", "think"})
-        for w, c in word_count.most_common(10):
-            if not any(w in t["topic"].lower() for t in topics):
-                topics.append({"topic": w.title(), "score": round(c / len(words) * 100, 1)})
-
-    return topics[:10]
-
-def analyze_comments(comments: List[Dict], video_url: str = "") -> Dict[str, Any]:
+def analyze_comments(comments):
     if not comments:
-        return {"error": "No comments"}
+        return {
+            "sentiment": {"positive": 0, "negative": 0, "neutral": 0},
+            "topics": [],
+            "questions": []
+        }
 
-    questions = extract_questions(comments)
-    topics = extract_topics(comments)
+    texts = [c['text'] for c in comments]
+    cleaned_texts = [clean_text(t) for t in texts]
 
-    # Sentiment
-    scores = [analyzer.polarity_scores(clean(c.get("text", "")))["compound"] for c in comments[:300]]
-    pos = len([s for s in scores if s >= 0.05])
-    neg = len([s for s in scores if s <= -0.05])
-    neu = len(scores) - pos - neg
-    total = len(scores) or 1
-
+    # 1. Sentiment Analysis
+    pos, neg, neu = 0, 0, 0
+    for text in texts:
+        blob = TextBlob(text)
+        polarity = blob.sentiment.polarity
+        if polarity > 0.1: pos += 1
+        elif polarity < -0.1: neg += 1
+        else: neu += 1
+    
+    total = len(texts)
     sentiment = {
-        "positive": round(pos / total * 100),
-        "negative": round(neg / total * 100),
-        "neutral": round(neu / total * 100),
-        "positive_ratio": round(pos / total, 2)
+        "positive": round((pos/total)*100),
+        "negative": round((neg/total)*100),
+        "neutral": round((neu/total)*100)
     }
 
-    avg_likes = sum(c.get("likes", 0) for c in comments) / len(comments)
+    # 2. Topic Extraction (TF-IDF)
+    try:
+        vectorizer = TfidfVectorizer(stop_words='english', max_features=10)
+        tfidf_matrix = vectorizer.fit_transform(cleaned_texts)
+        feature_names = vectorizer.get_feature_names_out()
+        topics = [{"topic": word, "weight": 10} for word in feature_names]
+    except:
+        # Fallback if too few words
+        all_words = " ".join(cleaned_texts).split()
+        common = Counter(all_words).most_common(5)
+        topics = [{"topic": word, "weight": count} for word, count in common]
 
+    # 3. Question Extraction
+    questions = []
+    for text in texts:
+        if "?" in text or text.lower().startswith(("how", "what", "why", "when", "can")):
+            questions.append({"text": text, "likes": 0})
+    
+    # Sort questions by length (heuristic for quality) and take top 10
+    questions.sort(key=lambda x: len(x['text']), reverse=True)
+    
     return {
-        "video_url": video_url,
-        "total_comments": len(comments),
-        "avg_likes": round(avg_likes, 2),
-        "avg_likes": round(avg_likes, 2),
-        # "viral_score": REMOVED - Generated by AI now
-        "questions": questions,
-        "questions": questions,
-        "topics": topics,
         "sentiment": sentiment,
-        "engagement": {
-            "comments_count": len(comments),
-            "avg_likes": round(avg_likes, 2),
-            "top_comments": []
-        }
+        "topics": topics,
+        "questions": questions[:10]
     }
