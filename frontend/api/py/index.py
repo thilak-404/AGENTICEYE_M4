@@ -2,9 +2,21 @@
 from fastapi import FastAPI, Query, HTTPException
 import asyncio
 from datetime import datetime
-from ._lib.pipelines.youtube import fetch_youtube_comments
-from ._lib.utils.nlp_utils import analyze_comments
-from ._lib.m3_ideas import generate_m3
+import sys
+import os
+
+# Add the py_lib directory to sys.path
+# We are in frontend/api/py/index.py
+# py_lib is in frontend/py_lib
+# So we need to go up two levels: ../../py_lib
+current_dir = os.path.dirname(os.path.abspath(__file__))
+py_lib_path = os.path.join(current_dir, '../../py_lib')
+if py_lib_path not in sys.path:
+    sys.path.append(py_lib_path)
+
+from pipelines.youtube import fetch_youtube_comments
+from utils.nlp_utils import analyze_comments
+from m3_ideas import generate_m3
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
