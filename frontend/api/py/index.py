@@ -2,9 +2,9 @@
 from fastapi import FastAPI, Query, HTTPException
 import asyncio
 from datetime import datetime
-from .pipelines.youtube import fetch_youtube_comments
-from .utils.nlp_utils import analyze_comments
-from .m3_ideas import generate_m3
+from ._lib.pipelines.youtube import fetch_youtube_comments
+from ._lib.utils.nlp_utils import analyze_comments
+from ._lib.m3_ideas import generate_m3
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
