@@ -93,12 +93,12 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Insufficient credits" }, { status: 403 });
         }
 
-        await prisma.$transaction([
-            prisma.user.update({
+        const updatedUser = await prisma.$transaction(async (tx) => {
+            const user = await tx.user.update({
                 where: { id: dbUser.id },
                 data: { credits: dbUser.credits - deductAmount },
-            }),
-            prisma.creditTransaction.create({
+            });
+            await tx.creditTransaction.create({
                 data: {
                     userId: dbUser.id,
                     amount: -deductAmount,
@@ -106,10 +106,11 @@ export async function POST(req: Request) {
                     type: "USAGE",
                     description: description
                 }
-            })
-        ]);
+            });
+            return user;
+        });
 
-        return NextResponse.json({ success: true, remaining: dbUser.credits - deductAmount });
+        return NextResponse.json({ success: true, remaining: updatedUser.credits });
     }
 
     if (action === 'save_history') {

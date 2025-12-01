@@ -68,8 +68,13 @@ export default function HistoryTab({ history, tier, setResult, setUrl, setActive
             ) : (
                 <div className="space-y-4">
                     {displayedHistory.map((item, i) => {
-                        const resultData = typeof item.result === 'string' ? JSON.parse(item.result) : item.result;
-                        const viralScore = resultData?.m3_generation?.viral_prediction_engine?.score || 0;
+                        let resultData: any = {};
+                        try {
+                            resultData = typeof item.result === 'string' ? JSON.parse(item.result) : item.result;
+                        } catch (e) {
+                            console.error('Failed to parse history result:', e);
+                        }
+                        const viralScore = resultData?.viral_score || resultData?.m3_generation?.viral_prediction_engine?.score || 0;
                         return (
                             <div key={i} className="bg-white p-6 rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
                                 <div className="flex justify-between items-start">

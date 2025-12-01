@@ -28,7 +28,7 @@ export async function POST(req: Request) {
                 },
             ],
             mode: 'payment',
-            success_url: `${process.env.KINDE_SITE_URL}/dashboard?success=true&session_id={CHECKOUT_SESSION_ID}`,
+            success_url: `${process.env.KINDE_SITE_URL}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${process.env.KINDE_SITE_URL}/pricing?canceled=true`,
             metadata: {
                 userId: user.id,

@@ -16,6 +16,7 @@ import {
     Play
 } from 'lucide-react';
 import jsPDF from 'jspdf';
+import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -120,6 +121,28 @@ export default function Dashboard() {
             const res = await fetch(`/api/stripe?session_id=${sessionId}`);
             const data = await res.json();
             if (data.status === 'paid') {
+                // Trigger confetti celebration
+                confetti({
+                    particleCount: 200,
+                    spread: 100,
+                    origin: { y: 0.6 }
+                });
+                
+                setTimeout(() => {
+                    confetti({
+                        particleCount: 100,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0 }
+                    });
+                    confetti({
+                        particleCount: 100,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1 }
+                    });
+                }, 250);
+                
                 alert("🎉 Payment Successful! Credits Added.");
                 fetchCredits();
                 fetchTransactions();
@@ -169,11 +192,29 @@ export default function Dashboard() {
             const platform = activeTab === 'tiktok-insights' ? 'tiktok' : 'youtube';
             // 1. Analyze (Don't deduct yet)
             const limit = deepAnalysis ? 500 : 50;
-            const res = await fetch(`/api/py/m3/analyze?url=${encodeURIComponent(url)}&tier=${tier}&platform=${platform}&limit=${limit}`);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
+            
+            const res = await fetch(`/api/py/m3/analyze?url=${encodeURIComponent(url)}&tier=${tier}&platform=${platform}&limit=${limit}`, {
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            
+            if (!res.ok) {
+                throw new Error(`Analysis failed: ${res.statusText}`);
+            }
+            
             const data = await res.json();
             if (data.error) throw new Error(data.error);
 
             setResult(data);
+
+            // Trigger confetti on success
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
 
             // 2. Deduct Credit (Only if analysis succeeded)
             await fetch('/api/user', {
@@ -191,14 +232,19 @@ export default function Dashboard() {
                 body: JSON.stringify({ action: 'save_history', videoUrl: url, result: data })
             });
             fetchHistory();
-        } catch (error) {
-            alert('Analysis failed. Please check the URL.');
+        } catch (error: any) {
+            console.error('Analysis error:', error);
+            if (error.name === 'AbortError') {
+                alert('Analysis timed out. Please try again or use a shorter video.');
+            } else {
+                alert(error.message || 'Analysis failed. Please check the URL and try again.');
+            }
         } finally {
             setLoading(false);
         }
     };
 
-    const handleSubmitVideoRequest = async () => {
+    const handleSubmitVideoRequest = async (scriptContent?: string) => {
         if (!requestTitle) return;
         if (credits < 10) {
             alert("Insufficient Credits. Please upgrade or purchase more.");
@@ -212,7 +258,7 @@ export default function Dashboard() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     title: requestTitle,
-                    notes: requestNotes,
+                    notes: requestNotes || scriptContent || '',
                     style: requestStyle,
                     duration: requestDuration,
                     tone: requestTone
@@ -221,16 +267,25 @@ export default function Dashboard() {
 
             const data = await res.json();
             if (data.success) {
+                // Trigger confetti for video request submission
+                confetti({
+                    particleCount: 50,
+                    spread: 60,
+                    origin: { y: 0.6 }
+                });
+                
                 alert("Request Submitted! We will notify you when it's ready.");
                 setRequestTitle('');
                 setRequestNotes('');
                 fetchVideoRequests();
                 fetchCredits();
+                fetchTransactions();
             } else {
                 alert(data.error || "Failed to submit request");
             }
         } catch (error) {
             console.error("Request failed", error);
+            alert("Failed to submit request. Please try again.");
         } finally {
             setSubmittingRequest(false);
         }
@@ -426,10 +481,13 @@ export default function Dashboard() {
                                                 doc.setTextColor(0, 0, 0);
                                                 doc.setFontSize(12);
                                                 doc.text(`Video URL: ${url}`, 10, 40);
-                                                doc.text(`Viral Score: ${result.viral_score}/100`, 10, 50);
-                                                doc.text(`Sentiment: ${result.sentiment.positive}% Positive`, 10, 60);
+                                                const viralScore = result.viral_score || result.m3_generation?.viral_prediction_engine?.score || 0;
+                                                doc.text(`Viral Score: ${viralScore}/100`, 10, 50);
+                                                const sentiment = result.sentiment || {};
+                                                doc.text(`Sentiment: ${sentiment.positive || 0}% Positive`, 10, 60);
                                                 doc.text("\nTop Ideas:", 10, 70);
-                                                result.ideas.slice(0, 5).forEach((idea: string, i: number) => {
+                                                const ideas = result.ideas || [];
+                                                ideas.slice(0, 5).forEach((idea: string, i: number) => {
                                                     doc.text(`${i + 1}. ${idea}`, 10, 80 + (i * 10));
                                                 });
                                                 doc.save("analysis_report.pdf");
@@ -455,7 +513,7 @@ export default function Dashboard() {
                                                     strokeWidth="12"
                                                     fill="none"
                                                     strokeDasharray="440"
-                                                    strokeDashoffset={440 - (440 * result.viral_score) / 100}
+                                                    strokeDashoffset={440 - (440 * (result.viral_score || result.m3_generation?.viral_prediction_engine?.score || 0)) / 100}
                                                     className="transition-all duration-1000 ease-out"
                                                 />
                                                 <defs>
@@ -465,13 +523,16 @@ export default function Dashboard() {
                                                     </linearGradient>
                                                 </defs>
                                             </svg>
-                                            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                                <span className="text-5xl font-black text-gray-900">{result.viral_score}</span>
-                                                <span className="text-sm text-gray-400 font-medium">/ 100</span>
-                                            </div>
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                            <span className="text-5xl font-black text-gray-900">{result.viral_score || result.m3_generation?.viral_prediction_engine?.score || 0}</span>
+                                            <span className="text-sm text-gray-400 font-medium">/ 100</span>
+                                        </div>
                                         </div>
                                         <p className="mt-4 text-center text-gray-600 font-medium">
-                                            {result.viral_score > 80 ? "🚀 Viral Hit Detected!" : result.viral_score > 50 ? "📈 Good Potential" : "⚠️ Needs Optimization"}
+                                            {(() => {
+                                                const score = result.viral_score || result.m3_generation?.viral_prediction_engine?.score || 0;
+                                                return score > 80 ? "🚀 Viral Hit Detected!" : score > 50 ? "📈 Good Potential" : "⚠️ Needs Optimization";
+                                            })()}
                                         </p>
                                     </div>
 
@@ -479,18 +540,25 @@ export default function Dashboard() {
                                     <div className="md:col-span-2 grid grid-cols-2 gap-6">
                                         <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
                                             <h3 className="text-sm font-bold text-gray-400 uppercase mb-4">Sentiment Analysis</h3>
-                                            <div className="flex items-center gap-4 mb-6">
-                                                <div className="flex-1 h-4 bg-gray-100 rounded-full overflow-hidden flex">
-                                                    <div style={{ width: `${result.sentiment.positive}%` }} className="bg-green-500 h-full" />
-                                                    <div style={{ width: `${result.sentiment.neutral}%` }} className="bg-gray-400 h-full" />
-                                                    <div style={{ width: `${result.sentiment.negative}%` }} className="bg-red-500 h-full" />
-                                                </div>
-                                            </div>
-                                            <div className="grid grid-cols-3 gap-2 text-center">
-                                                <div><div className="text-2xl font-bold text-green-600">{result.sentiment.positive}%</div><div className="text-xs text-gray-400">Positive</div></div>
-                                                <div><div className="text-2xl font-bold text-gray-600">{result.sentiment.neutral}%</div><div className="text-xs text-gray-400">Neutral</div></div>
-                                                <div><div className="text-2xl font-bold text-red-600">{result.sentiment.negative}%</div><div className="text-xs text-gray-400">Negative</div></div>
-                                            </div>
+                                            {(() => {
+                                                const sentiment = result.sentiment || { positive: 0, neutral: 0, negative: 0 };
+                                                return (
+                                                    <>
+                                                        <div className="flex items-center gap-4 mb-6">
+                                                            <div className="flex-1 h-4 bg-gray-100 rounded-full overflow-hidden flex">
+                                                                <div style={{ width: `${sentiment.positive}%` }} className="bg-green-500 h-full" />
+                                                                <div style={{ width: `${sentiment.neutral}%` }} className="bg-gray-400 h-full" />
+                                                                <div style={{ width: `${sentiment.negative}%` }} className="bg-red-500 h-full" />
+                                                            </div>
+                                                        </div>
+                                                        <div className="grid grid-cols-3 gap-2 text-center">
+                                                            <div><div className="text-2xl font-bold text-green-600">{sentiment.positive || 0}%</div><div className="text-xs text-gray-400">Positive</div></div>
+                                                            <div><div className="text-2xl font-bold text-gray-600">{sentiment.neutral || 0}%</div><div className="text-xs text-gray-400">Neutral</div></div>
+                                                            <div><div className="text-2xl font-bold text-red-600">{sentiment.negative || 0}%</div><div className="text-xs text-gray-400">Negative</div></div>
+                                                        </div>
+                                                    </>
+                                                );
+                                            })()}
                                         </div>
 
                                         <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
@@ -498,15 +566,15 @@ export default function Dashboard() {
                                             <div className="space-y-4">
                                                 <div className="flex justify-between items-center">
                                                     <span className="text-gray-600">Comments Analyzed</span>
-                                                    <span className="font-bold text-xl">{result.engagement_metrics.comments_count}</span>
+                                                    <span className="font-bold text-xl">{result.engagement_metrics?.comments_count || 0}</span>
                                                 </div>
                                                 <div className="flex justify-between items-center">
                                                     <span className="text-gray-600">Total Likes</span>
-                                                    <span className="font-bold text-xl">{result.engagement_metrics.total_likes.toLocaleString()}</span>
+                                                    <span className="font-bold text-xl">{(result.engagement_metrics?.total_likes || 0).toLocaleString()}</span>
                                                 </div>
                                                 <div className="flex justify-between items-center">
                                                     <span className="text-gray-600">Topics Found</span>
-                                                    <span className="font-bold text-xl">{result.topics.length}</span>
+                                                    <span className="font-bold text-xl">{(result.topics || []).length}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -522,7 +590,7 @@ export default function Dashboard() {
                                         <h3 className="text-xl font-bold text-gray-900">AI Viral Content Ideas</h3>
                                     </div>
                                     <div className="grid gap-4">
-                                        {result.ideas.map((idea: string, i: number) => (
+                                        {(result.ideas || []).map((idea: string, i: number) => (
                                             <div key={i} className="p-4 rounded-xl bg-gray-50 border border-gray-100 hover:bg-purple-50 hover:border-purple-200 transition-all group flex justify-between items-center">
                                                 <div className="flex gap-4">
                                                     <span className="w-8 h-8 rounded-full bg-white flex items-center justify-center font-bold text-gray-400 border border-gray-200 group-hover:border-purple-300 group-hover:text-purple-600 transition-colors">

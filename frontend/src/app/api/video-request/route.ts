@@ -64,7 +64,7 @@ export async function POST(req: Request) {
                 ideaTitle: title,
                 notes,
                 preferences: JSON.stringify({ style, duration, tone }),
-                status: 'PENDING',
+                status: 'Pending',
             }
         }),
         prisma.creditTransaction.create({

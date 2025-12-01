@@ -61,8 +61,12 @@ export default function DashboardHome({
                     <div className="text-2xl font-black text-purple-600">
                         {history.length > 0
                             ? Math.round(history.reduce((acc, curr) => {
-                                const res = typeof curr.result === 'string' ? JSON.parse(curr.result) : curr.result;
-                                return acc + (res?.m3_generation?.viral_prediction_engine?.score || 0);
+                                try {
+                                    const res = typeof curr.result === 'string' ? JSON.parse(curr.result) : curr.result;
+                                    return acc + (res?.viral_score || res?.m3_generation?.viral_prediction_engine?.score || 0);
+                                } catch (e) {
+                                    return acc;
+                                }
                             }, 0) / history.length)
                             : 0}
                     </div>
